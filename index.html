@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AgriFlow Pro | Tubewell Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { --primary: #10b981; --bg: #060913; --card: rgba(15, 23, 42, 0.65); }
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            background-image: 
+                radial-gradient(circle at 90% 10%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 10% 80%, rgba(59, 130, 246, 0.06) 0%, transparent 40%);
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .glass { 
+            background: var(--card); 
+            backdrop-filter: blur(20px); 
+            -webkit-backdrop-filter: blur(20px); 
+            border: 1px solid rgba(255, 255, 255, 0.05); 
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+        }
+        .glass-hover {
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .glass-hover:hover {
+            transform: translateY(-5px);
+            border-color: rgba(16, 185, 129, 0.25);
+            box-shadow: 0 20px 40px rgba(16, 185, 129, 0.05);
+            background: rgba(20, 30, 54, 0.8);
+        }
+        .active-nav { 
+            color: var(--primary) !important; 
+            background: linear-gradient(90deg, rgba(16, 185, 129, 0.15) 0%, transparent 100%); 
+            border-left: 3px solid var(--primary);
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        input[type="time"], input[type="date"], input[type="number"] { color-scheme: dark; }
+        
+        #graph-filter {
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 0.75rem;
+            padding-right: 2.5rem;
+            transition: all 0.2s;
+        }
+        #graph-filter:hover { border-color: rgba(16, 185, 129, 0.5); }
+
+        .animate-slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .pulse-glow-pending { animation: pulsePending 2s infinite; }
+        @keyframes pulsePending { 0%, 100% { background-color: rgba(249, 115, 22, 0.1); } 50% { background-color: rgba(249, 115, 22, 0.2); } }
+        
+        .pulse-glow-clear { animation: pulseClear 2s infinite; }
+        @keyframes pulseClear { 0%, 100% { background-color: rgba(16, 185, 129, 0.1); } 50% { background-color: rgba(16, 185, 129, 0.2); } }
+    </style>
+</head>
+<body class="lg:pl-72 pb-28 lg:pb-0 min-h-screen">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="fixed left-0 top-0 h-full w-72 glass hidden lg:flex flex-col p-6 z-50 border-r border-white/5">
+        <div class="flex items-center gap-3 px-2 py-4 mb-8">
+            <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <i data-lucide="droplet" class="text-white w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">AgribyHassan<span class="text-emerald-500">.</span></h1>
+                <p class="text-[10px] text-emerald-400 font-semibold tracking-widest uppercase">bin usman</p>
+            </div>
+        </div>
+        <nav class="space-y-1.5 flex-1">
+            <button onclick="showView('dashboard')" class="nav-item active-nav w-full flex items-center gap-4 py-3.5 px-4 text-slate-400 hover:text-white rounded-xl transition-all duration-200 font-medium text-sm">
+                <i data-lucide="layout-grid" size="18"></i> Dashboard
+            </button>
+            <button onclick="showView('analytics')" class="nav-item w-full flex items-center gap-4 py-3.5 px-4 text-slate-400 hover:text-white rounded-xl transition-all duration-200 font-medium text-sm">
+                <i data-lucide="bar-chart-3" size="18"></i> Analytics Engine
+            </button>
+        </nav>
+        <div class="pt-4 border-t border-white/5 text-center">
+            <p class="text-[11px] text-slate-600">v3.2 • Secure Offline Storage</p>
+        </div>
+    </aside>
+
+    <!-- MOBILE NAVIGATION BAR -->
+    <div class="fixed bottom-6 left-4 right-4 h-20 glass rounded-2xl flex lg:hidden items-center justify-around px-4 z-[60] border-white/10 shadow-2xl backdrop-blur-lg">
+        <button onclick="showView('dashboard')" class="p-3 text-emerald-500 hover:scale-110 active:scale-95 transition-all"><i data-lucide="layout-grid" size="22"></i></button>
+        <button onclick="openAddFarmer()" class="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center -translate-y-6 shadow-xl shadow-emerald-500/30 text-white hover:rotate-90 active:scale-90 transition-all duration-300">
+            <i data-lucide="plus" size="28"></i>
+        </button>
+        <button onclick="showView('analytics')" class="p-3 text-slate-400 hover:scale-110 active:scale-95 transition-all"><i data-lucide="bar-chart-3" size="22"></i></button>
+    </div>
+
+    <!-- MAIN FRAME -->
+    <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-12">
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-10 mt-2 sm:mt-0">
+            <div>
+                <h2 id="header-title" class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Dashboard</h2>
+                <p id="header-date" class="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium flex items-center gap-2 text-emerald-400/80"></p>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <!-- CLEAR ALL DATA BUTTON -->
+                <button onclick="clearAllData()" class="flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 px-4 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all duration-200">
+                    <i data-lucide="trash-2" size="16"></i> <span class="hidden sm:inline">Clear Data</span>
+                </button>
+                <button onclick="openAddFarmer()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/15 active:scale-95 transition-all duration-200">
+                    <i data-lucide="user-plus" size="16"></i> <span class="hidden sm:inline">Add Farmer</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- DASHBOARD ENTITY VIEW -->
+        <div id="view-dashboard" class="space-y-8 animate-slide-up">
+            <!-- STATS CONTAINER -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div class="glass p-5 rounded-2xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 text-white/5 group-hover:text-emerald-500/10 transition-colors"><i data-lucide="users" size="40"></i></div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Farmers</p>
+                    <h3 id="stat-farmers" class="text-2xl sm:text-3xl font-bold mt-1 text-white">0</h3>
+                </div>
+                <div class="glass p-5 rounded-2xl border-l-4 border-emerald-500 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 text-white/5 group-hover:text-emerald-500/10 transition-colors"><i data-lucide="line-chart" size="40"></i></div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Weekly Collected</p>
+                    <h3 id="stat-weekly" class="text-2xl sm:text-3xl font-bold mt-1 text-emerald-400">0</h3>
+                </div>
+                <div class="glass p-5 rounded-2xl border-l-4 border-orange-500 relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 text-white/5 group-hover:text-orange-500/10 transition-colors"><i data-lucide="alert-circle" size="40"></i></div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Remaining Due</p>
+                    <h3 id="stat-due" class="text-2xl sm:text-3xl font-bold mt-1 text-orange-400">0</h3>
+                </div>
+                <div class="glass p-5 rounded-2xl relative overflow-hidden group">
+                    <div class="absolute top-0 right-0 p-3 text-white/5 group-hover:text-emerald-500/10 transition-colors"><i data-lucide="activity" size="40"></i></div>
+                    <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Total Saved Runs</p>
+                    <h3 id="stat-sessions" class="text-2xl sm:text-3xl font-bold mt-1 text-slate-300">0</h3>
+                </div>
+            </div>
+
+            <!-- FILTERS AND INTERACTION ROW -->
+            <div class="relative group">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors" size="18"></i>
+                <input type="text" id="farmer-search" oninput="renderFarmers()" placeholder="Search farmers by name or village..." class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300 placeholder:text-slate-600 text-sm">
+            </div>
+
+            <!-- CORE CARDS HOLDER -->
+            <div id="farmer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- METRICS MATRIX VIEW -->
+        <div id="view-analytics" class="hidden space-y-6 animate-slide-up">
+            <div class="grid lg:grid-cols-3 gap-6">
+                <div class="lg:col-span-2 glass p-6 rounded-[2rem] flex flex-col justify-between">
+                    <div class="flex justify-between items-center mb-6">
+                        <div>
+                            <h4 class="font-bold text-base text-white">Earnings Analytics Graph</h4>
+                            <p class="text-xs text-slate-500 mt-0.5">Visual breakdown of recorded payments</p>
+                        </div>
+                        <select id="graph-filter" onchange="refreshAnalytics()" class="rounded-xl px-4 py-2.5 text-xs font-bold outline-none cursor-pointer">
+                            <option value="week">Weekly View</option>
+                            <option value="month">Monthly Cycle</option>
+                            <option value="year">Yearly Track</option>
+                            <option value="lifetime">Lifetime History</option>
+                        </select>
+                    </div>
+                    <div class="h-[320px] w-full relative"><canvas id="mainChart"></canvas></div>
+                </div>
+                <div class="space-y-4 flex flex-col justify-between">
+                    <div class="glass p-6 rounded-2xl border-t-4 border-emerald-500 bg-gradient-to-b from-emerald-500/5 to-transparent">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">This Month Collected</p>
+                        <h3 id="ana-monthly" class="text-3xl font-extrabold text-emerald-400 mt-2">Rs 0</h3>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-t-4 border-blue-500 bg-gradient-to-b from-blue-500/5 to-transparent">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">This Year Collected</p>
+                        <h3 id="ana-yearly" class="text-3xl font-extrabold text-blue-400 mt-2">Rs 0</h3>
+                    </div>
+                    <div class="glass p-6 rounded-2xl border-t-4 border-purple-500 bg-gradient-to-b from-purple-500/5 to-transparent">
+                        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Overall Income</p>
+                        <h3 id="ana-total" class="text-3xl font-extrabold text-purple-400 mt-2">Rs 0</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: REGISTRATION FRAME -->
+    <div id="modal-add-farmer" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 sm:p-6 transition-all duration-300 backdrop-blur-md bg-slate-950/60">
+        <div class="absolute inset-0" onclick="closeAddFarmer()"></div>
+        <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem] border border-white/10 transform scale-100 transition-transform">
+            <h3 class="text-xl font-bold tracking-tight text-white mb-2">Register New Farmer</h3>
+            <p class="text-xs text-slate-400 mb-6">Create a profile to log tubewell timings and cash payments.</p>
+            <div class="space-y-4">
+                <input type="text" id="new-name" placeholder="Farmer Full Name" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm transition-all">
+                <input type="text" id="new-village" placeholder="Village / Location" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-sm transition-all">
+                <button onclick="saveFarmer()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-xl font-bold text-sm shadow-xl shadow-emerald-500/10 active:scale-98 transition-all">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TUBENEWLL HISTORY & DESCRIPTION PAGE -->
+    <div id="modal-detail" class="fixed inset-0 z-[100] hidden flex flex-col justify-end lg:justify-center backdrop-blur-xl bg-slate-950/80">
+        <div class="absolute inset-0" onclick="closeDetail()"></div>
+        <div class="relative lg:mx-auto lg:max-w-4xl w-full glass lg:rounded-[2rem] rounded-t-[2rem] h-[90vh] lg:h-[85vh] overflow-hidden flex flex-col border-t border-white/10 lg:border">
+            
+            <!-- Header section -->
+            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+                <div class="flex items-center gap-4">
+                    <div id="det-avatar" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-extrabold text-white text-lg shadow-md"></div>
+                    <div>
+                        <h3 id="det-name" class="text-xl font-bold text-white tracking-tight">Name</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">View runs history and record payments</p>
+                    </div>
+                </div>
+                <button onclick="closeDetail()" class="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all"><i data-lucide="x" size="18"></i></button>
+            </div>
+            
+            <!-- Dashboard Main Container Split -->
+            <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 no-scrollbar pb-12">
+                <!-- Action & Status bar -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div class="bg-slate-900/60 p-4 rounded-xl border border-white/5 flex flex-col justify-center">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Remaining Due</p>
+                        <p id="det-due" class="text-xl font-extrabold text-orange-400 mt-0.5">Rs 0</p>
+                    </div>
+                    <button onclick="openAddSession()" class="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-xl h-14 flex items-center justify-center gap-2 font-bold text-sm border border-emerald-500/20 transition-all active:scale-95">
+                        <i data-lucide="plus" size="16"></i> + Log New Run
+                    </button>
+                    <button onclick="openCollectPayment()" class="bg-blue-600 hover:bg-blue-700 text-white rounded-xl h-14 flex items-center justify-center gap-2 font-bold text-sm shadow-lg shadow-blue-500/15 transition-all active:scale-95">
+                        <i data-lucide="banknote" size="16"></i> + Record Payment
+                    </button>
+                </div>
+
+                <!-- Split History Columns -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Left: Tubewell sessions logs -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3"><i data-lucide="clock" size="14" class="text-slate-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tubewell Runs History</h4></div>
+                        <div id="session-list" class="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar"></div>
+                    </div>
+                    <!-- Right: Payments received list -->
+                    <div>
+                        <div class="flex items-center gap-2 mb-3"><i data-lucide="history" size="14" class="text-blue-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Payments Received</h4></div>
+                        <div id="payment-list" class="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: TIME ENTRY RECORDING MODULE -->
+    <div id="modal-add-session" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 backdrop-blur-md bg-slate-950/80">
+        <div class="absolute inset-0" onclick="closeAddSession()"></div>
+        <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem]">
+            <h3 class="text-xl font-bold text-white mb-5 tracking-tight">Log Tubewell Session</h3>
+            <div class="grid grid-cols-2 gap-3 mb-5">
+                <button onclick="setRate(1300)" id="btn-solar" class="p-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-left transition-all">
+                    <p class="text-[9px] font-bold text-emerald-400 tracking-wider">POWER TYPE: SOLAR</p>
+                    <p class="text-base font-bold mt-1">1300<span class="text-xs text-slate-500">/hr</span></p>
+                </button>
+                <button onclick="setRate(1800)" id="btn-electric" class="p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all">
+                    <p class="text-[9px] font-bold text-slate-400 tracking-wider">POWER TYPE: GRID</p>
+                    <p class="text-base font-bold mt-1">1800<span class="text-xs text-slate-500">/hr</span></p>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Date</label>
+                    <input type="date" id="s-date" class="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 mt-1 text-sm outline-none focus:border-emerald-500">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Start Time</label>
+                        <input type="time" id="s-start" oninput="updateSessionCalc()" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 mt-1 text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">End Time</label>
+                        <input type="time" id="s-end" oninput="updateSessionCalc()" class="w-full bg-white/5 border border-white/10 rounded-xl p-3 mt-1 text-sm outline-none">
+                    </div>
+                </div>
+                <div class="p-4 bg-emerald-500/5 border border-emerald-500/10 rounded-xl flex justify-between items-center">
+                    <div><p class="text-[10px] text-slate-500 uppercase font-semibold">Total Time</p><p id="calc-hours" class="font-bold text-sm text-slate-200 mt-0.5">0.0h</p></div>
+                    <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-semibold">Calculated Cost</p><p id="calc-price" class="text-lg font-extrabold text-emerald-400 mt-0.5">Rs 0</p></div>
+                </div>
+                <button onclick="saveSession()" class="w-full bg-gradient-to-r from-emerald-500 to-teal-600 py-4 rounded-xl font-bold text-sm active:scale-98 transition-all shadow-lg shadow-emerald-500/10">Save Run Details</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: MANUAL LIQUIDATION VAULT -->
+    <div id="modal-collect-payment" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 backdrop-blur-md bg-slate-950/80">
+        <div class="absolute inset-0" onclick="closeCollectPayment()"></div>
+        <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem]">
+            <h3 class="text-xl font-bold text-white mb-1 tracking-tight">Record Cash Payment</h3>
+            <p class="text-xs text-slate-400 mb-5">Manually input any cash or payments cleared by the farmer.</p>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-500 ml-1">Payment Date</label>
+                    <input type="date" id="p-date" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mt-1 text-sm outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold uppercase text-slate-500 ml-1">Amount Received (Rs)</label>
+                    <input type="number" id="p-amount" placeholder="Enter amount paid" class="w-full bg-white/5 border border-white/10 rounded-xl p-4 mt-1 outline-none focus:border-blue-500 text-lg font-bold text-emerald-400 placeholder:text-slate-700">
+                </div>
+                <button onclick="savePaymentChunk()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 py-4 rounded-xl font-bold text-sm active:scale-98 transition-all shadow-lg shadow-blue-500/10">Save Payment</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let data = JSON.parse(localStorage.getItem('agriflow_data_v3')) || { farmers: [] };
+        let currentFarmer = null;
+        let selectedRate = 1300;
+        let chartInstance = null;
+
+        function init() {
+            lucide.createIcons();
+            document.getElementById('header-date').innerHTML = `<i data-lucide="calendar" size="14"></i> ` + new Date().toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+            renderFarmers();
+            initChart();
+        }
+
+        function showView(view) {
+            document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
+            if(window.event && window.event.currentTarget.classList.contains('nav-item')) window.event.currentTarget.classList.add('active-nav');
+            if(view === 'analytics') refreshAnalytics();
+            lucide.createIcons();
+        }
+
+        function getFarmerBalances(farmer) {
+            const totalBill = farmer.sessions.reduce((sum, s) => sum + s.cost, 0);
+            const totalPaid = (farmer.payments || []).reduce((sum, p) => sum + p.amount, 0);
+            return { totalBill, totalPaid, debt: Math.max(0, totalBill - totalPaid) };
+        }
+
+        function renderFarmers() {
+            const search = document.getElementById('farmer-search').value.toLowerCase();
+            const list = document.getElementById('farmer-list');
+            const filtered = data.farmers.filter(f => f.name.toLowerCase().includes(search));
+            
+            if (filtered.length === 0) {
+                list.innerHTML = `
+                    <div class="col-span-full py-12 flex flex-col items-center text-slate-500 glass rounded-[2rem] border-dashed border-white/10">
+                        <i data-lucide="folder-open" size="32" class="mb-2 text-slate-600"></i>
+                        <p class="text-xs font-medium">No active profiles matching search criteria.</p>
+                    </div>`;
+            } else {
+                list.innerHTML = filtered.map(f => {
+                    const balances = getFarmerBalances(f);
+                    return `
+                        <div onclick="openDetail(${f.id})" class="glass glass-hover p-6 rounded-[2rem] cursor-pointer relative group animate-slide-up">
+                            <div class="flex justify-between items-center mb-5">
+                                <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-500/10 to-teal-500/5 text-emerald-400 border border-emerald-500/10 flex items-center justify-center font-bold text-sm transition-all group-hover:scale-105">${f.name[0]}</div>
+                                <div class="flex items-center justify-center w-24 h-7 rounded-full text-[9px] font-bold tracking-widest leading-none ${balances.debt > 0 ? 'pulse-glow-pending text-orange-400 border border-orange-500/20' : 'pulse-glow-clear text-emerald-400 border border-emerald-500/20'}">
+                                    <span>${balances.debt > 0 ? 'PENDING' : 'CLEAR'}</span>
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-lg text-white group-hover:text-emerald-400 transition-colors tracking-tight leading-none mb-1.5">${f.name}</h4>
+                            <p class="text-slate-500 text-xs flex items-center gap-1 font-medium"><i data-lucide="map-pin" size="12"></i> ${f.village}</p>
+                            <div class="mt-5 pt-4 border-t border-white/5 flex justify-between items-center">
+                                <div><p class="text-[9px] text-slate-500 uppercase font-bold tracking-wider">Remaining Due</p><p class="font-extrabold text-sm mt-0.5 ${balances.debt > 0 ? 'text-orange-400' : 'text-slate-400'}">Rs ${balances.debt.toLocaleString()}</p></div>
+                                <div class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all"><i data-lucide="arrow-right" size="14"></i></div>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+            lucide.createIcons();
+            updateGlobalStats();
+        }
+
+        function openDetail(id) {
+            currentFarmer = data.farmers.find(f => f.id === id);
+            if (!currentFarmer.payments) currentFarmer.payments = [];
+            document.getElementById('det-name').innerText = currentFarmer.name;
+            document.getElementById('det-avatar').innerText = currentFarmer.name[0];
+            renderLedgers();
+            document.getElementById('modal-detail').classList.remove('hidden');
+        }
+
+        function renderLedgers() {
+            const balances = getFarmerBalances(currentFarmer);
+            document.getElementById('det-due').innerText = `Rs ${balances.debt.toLocaleString()}`;
+
+            const sList = document.getElementById('session-list');
+            if(currentFarmer.sessions.length === 0) {
+                sList.innerHTML = `<div class="p-6 text-center text-xs text-slate-600 border border-dashed border-white/5 rounded-xl">No saved running logs yet.</div>`;
+            } else {
+                sList.innerHTML = currentFarmer.sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).map(s => {
+                    return `
+                        <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/[0.04] transition-all group">
+                            <div>
+                                <p class="font-bold text-xs text-white">${s.type} Run • ${s.hours} hours</p>
+                                <p class="text-[10px] text-slate-500 mt-0.5">${s.date} | ${s.start} - ${s.end}</p>
+                            </div>
+                            <div class="text-right flex items-center gap-3">
+                                <div>
+                                    <p class="font-bold text-xs text-slate-300">Rs ${s.cost.toLocaleString()}</p>
+                                    <button onclick="shortcutSessionPayment(${s.id}, ${s.cost}); event.stopPropagation();" class="bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:text-white px-2 py-0.5 rounded text-[10px] font-semibold text-emerald-400 block mt-1 transition-all">Mark Paid</button>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
+            }
+
+            const pList = document.getElementById('payment-list');
+            if(!currentFarmer.payments || currentFarmer.payments.length === 0) {
+                pList.innerHTML = `<div class="p-6 text-center text-xs text-slate-600 border border-dashed border-white/5 rounded-xl">No payments received yet.</div>`;
+            } else {
+                pList.innerHTML = currentFarmer.payments.sort((a,b) => new Date(b.date) - new Date(a.date)).map(p => `
+                    <div class="bg-emerald-500/[0.02] p-4 rounded-xl border border-emerald-500/10 flex justify-between items-center group">
+                        <div>
+                            <p class="font-semibold text-xs text-emerald-400 flex items-center gap-1"><i data-lucide="check" size="12"></i> Received Payment</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${p.date}</p>
+                        </div>
+                        <p class="font-bold text-sm text-emerald-400">+ Rs ${p.amount.toLocaleString()}</p>
+                    </div>`).join('');
+            }
+            lucide.createIcons();
+        }
+
+        function shortcutSessionPayment(sessionId, cost) {
+            if(!currentFarmer.payments) currentFarmer.payments = [];
+            const timestampDate = new Date().toISOString().split('T')[0];
+            currentFarmer.payments.push({ id: Date.now(), date: timestampDate, amount: cost });
+            sync(); renderLedgers(); renderFarmers();
+        }
+
+        function setRate(r) {
+            selectedRate = r;
+            document.getElementById('btn-solar').className = r === 1300 ? 'p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-left transition-all' : 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
+            document.getElementById('btn-electric').className = r === 1800 ? 'p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-left transition-all' : 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
+            updateSessionCalc();
+        }
+
+        function updateSessionCalc() {
+            const start = document.getElementById('s-start').value;
+            const end = document.getElementById('s-end').value;
+            if(!start || !end) return;
+            const [h1, m1] = start.split(':').map(Number);
+            const [h2, m2] = end.split(':').map(Number);
+            let diff = (h2 * 60 + m2) - (h1 * 60 + m1);
+            if(diff < 0) diff += 1440;
+            const hrs = (diff / 60).toFixed(2);
+            document.getElementById('calc-hours').innerText = hrs + 'h';
+            document.getElementById('calc-price').innerText = 'Rs ' + Math.ceil(hrs * selectedRate).toLocaleString();
+        }
+
+        function saveSession() {
+            const date = document.getElementById('s-date').value;
+            const hrs = parseFloat(document.getElementById('calc-hours').innerText);
+            if(!date || isNaN(hrs)) return;
+            currentFarmer.sessions.push({
+                id: Date.now(), date, hours: hrs, cost: Math.ceil(hrs * selectedRate),
+                type: selectedRate === 1300 ? 'Solar' : 'Electric', 
+                start: document.getElementById('s-start').value, end: document.getElementById('s-end').value
+            });
+            sync(); closeAddSession(); renderLedgers(); renderFarmers();
+        }
+
+        function openCollectPayment() {
+            document.getElementById('p-date').valueAsDate = new Date();
+            document.getElementById('p-amount').value = '';
+            document.getElementById('modal-collect-payment').classList.remove('hidden');
+        }
+        function closeCollectPayment() { document.getElementById('modal-collect-payment').classList.add('hidden'); }
+
+        function savePaymentChunk() {
+            const pDate = document.getElementById('p-date').value;
+            const pAmount = parseInt(document.getElementById('p-amount').value);
+            if(!pDate || isNaN(pAmount) || pAmount <= 0) return;
+            if(!currentFarmer.payments) currentFarmer.payments = [];
+            currentFarmer.payments.push({ id: Date.now(), date: pDate, amount: pAmount });
+            sync(); closeCollectPayment(); renderLedgers(); renderFarmers();
+        }
+
+        function saveFarmer() {
+            const n = document.getElementById('new-name').value;
+            const v = document.getElementById('new-village').value;
+            if(!n || !v) return;
+            data.farmers.push({ id: Date.now(), name: n, village: v, sessions: [], payments: [] });
+            sync(); closeAddFarmer(); renderFarmers();
+            document.getElementById('new-name').value = ''; document.getElementById('new-village').value = '';
+        }
+
+        /* CLEAR DATA MODULE */
+        function clearAllData() {
+            const verify = confirm("⚠️ Danger Zone!\n\nAre you absolutely sure you want to delete ALL farmers, runs logs, and payment history?\n\nThis completely resets the app storage and CANNOT be undone.");
+            if (verify) {
+                data = { farmers: [] };
+                localStorage.removeItem('agriflow_data_v3');
+                sync();
+                renderFarmers();
+                if (!document.getElementById('view-analytics').classList.contains('hidden')) {
+                    refreshAnalytics();
+                }
+            }
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const gradient = ctx.createLinearGradient(0, 0, 0, 300);
+            gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+            gradient.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+            
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ data: [], borderColor: '#10b981', borderWidth: 2.5, pointBackgroundColor: '#10b981', tension: 0.38, fill: true, backgroundColor: gradient }] },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } }, x: { grid: { display: false }, ticks: { color: '#475569', font: { family: 'Plus Jakarta Sans', size: 10 } } } } }
+            });
+        }
+
+        function refreshAnalytics() {
+            const filter = document.getElementById('graph-filter').value;
+            const now = new Date();
+            let total = 0, monthly = 0, yearly = 0;
+            const plotData = {};
+
+            data.farmers.forEach(f => (f.payments || []).forEach(p => {
+                const pd = new Date(p.date);
+                total += p.amount;
+                
+                if(pd.getFullYear() === now.getFullYear()) {
+                    yearly += p.amount;
+                    if(pd.getMonth() === now.getMonth()) monthly += p.amount;
+                }
+
+                const dateStr = p.date; 
+                if (filter === 'week') {
+                    const daysDiff = (now - pd) / 86400000;
+                    if (daysDiff <= 7) plotData[dateStr] = (plotData[dateStr] || 0) + p.amount;
+                } else if (filter === 'month') {
+                    if (pd.getMonth() === now.getMonth() && pd.getFullYear() === now.getFullYear())
+                        plotData[dateStr] = (plotData[dateStr] || 0) + p.amount;
+                } else if (filter === 'year') {
+                    const monthKey = pd.toLocaleString('default', { month: 'short' });
+                    plotData[monthKey] = (plotData[monthKey] || 0) + p.amount;
+                } else {
+                    plotData[dateStr] = (plotData[dateStr] || 0) + p.amount;
+                }
+            }));
+
+            document.getElementById('ana-total').innerText = `Rs ${total.toLocaleString()}`;
+            document.getElementById('ana-monthly').innerText = `Rs ${monthly.toLocaleString()}`;
+            document.getElementById('ana-yearly').innerText = `Rs ${yearly.toLocaleString()}`;
+            
+            const sortedKeys = Object.keys(plotData).sort();
+            chartInstance.data.labels = sortedKeys;
+            chartInstance.data.datasets[0].data = sortedKeys.map(k => plotData[k]);
+            chartInstance.update();
+        }
+
+        function updateGlobalStats() {
+            let globalDebt = 0, weeklyEarnings = 0, globalSessions = 0;
+            const now = new Date();
+
+            data.farmers.forEach(f => {
+                globalSessions += f.sessions.length;
+                const balances = getFarmerBalances(f);
+                globalDebt += balances.debt;
+
+                (f.payments || []).forEach(p => {
+                    const pd = new Date(p.date);
+                    if ((now - pd) / 86400000 <= 7) weeklyEarnings += p.amount;
+                });
+            });
+
+            document.getElementById('stat-farmers').innerText = data.farmers.length;
+            document.getElementById('stat-due').innerText = 'Rs ' + globalDebt.toLocaleString();
+            document.getElementById('stat-weekly').innerText = 'Rs ' + weeklyEarnings.toLocaleString();
+            document.getElementById('stat-sessions').innerText = globalSessions;
+        }
+
+        function sync() { localStorage.setItem('agriflow_data_v3', JSON.stringify(data)); updateGlobalStats(); }
+        function openAddFarmer() { document.getElementById('modal-add-farmer').classList.remove('hidden'); }
+        function closeAddFarmer() { document.getElementById('modal-add-farmer').classList.add('hidden'); }
+        function openAddSession() { document.getElementById('s-date').valueAsDate = new Date(); document.getElementById('modal-add-session').classList.remove('hidden'); }
+        function closeAddSession() { document.getElementById('modal-add-session').classList.add('hidden'); }
+        function closeDetail() { document.getElementById('modal-detail').classList.add('hidden'); }
+
+        init();
+    </script>
+</body>
+</html>
