@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="icon" type="image/png" href="png of tubewell.png">
     
     <style>
         :root { --primary: #10b981; --bg: #060913; --card: rgba(15, 23, 42, 0.65); }
@@ -27,9 +28,7 @@
             border: 1px solid rgba(255, 255, 255, 0.05); 
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
         }
-        .glass-hover {
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
+        .glass-hover { transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
         .glass-hover:hover {
             transform: translateY(-5px);
             border-color: rgba(16, 185, 129, 0.25);
@@ -45,16 +44,11 @@
         input[type="time"], input[type="date"], input[type="number"] { color-scheme: dark; }
         
         #graph-filter {
-            background-color: #000000;
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            background-color: #000000; color: #ffffff; border: 1px solid rgba(255, 255, 255, 0.15);
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.75rem center;
-            background-size: 0.75rem;
-            padding-right: 2.5rem;
-            transition: all 0.2s;
+            background-repeat: no-repeat; background-position: right 0.75rem center; background-size: 0.75rem;
+            padding-right: 2.5rem; transition: all 0.2s;
         }
         #graph-filter:hover { border-color: rgba(16, 185, 129, 0.5); }
 
@@ -70,7 +64,6 @@
 </head>
 <body class="lg:pl-72 pb-28 lg:pb-0 min-h-screen">
 
-    <!-- DESKTOP SIDEBAR -->
     <aside class="fixed left-0 top-0 h-full w-72 glass hidden lg:flex flex-col p-6 z-50 border-r border-white/5">
         <div class="flex items-center gap-3 px-2 py-4 mb-8">
             <div class="w-11 h-11 bg-gradient-to-tr from-emerald-600 to-teal-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/20">
@@ -78,7 +71,7 @@
             </div>
             <div>
                 <h1 class="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-300 bg-clip-text text-transparent">AgribyHassan<span class="text-emerald-500">.</span></h1>
-                <p class="text-[10px] text-emerald-400 font-semibold tracking-widest uppercase">bin usman</p>
+                <p class="text-[10px] text-emerald-400 font-semibold tracking-widest uppercase">Bin Usman</p>
             </div>
         </div>
         <nav class="space-y-1.5 flex-1">
@@ -90,11 +83,10 @@
             </button>
         </nav>
         <div class="pt-4 border-t border-white/5 text-center">
-            <p class="text-[11px] text-slate-600">v3.2 • Secure Offline Storage</p>
+            <p class="text-[11px] text-slate-600">v3.4 • Secure Offline Storage</p>
         </div>
     </aside>
 
-    <!-- MOBILE NAVIGATION BAR -->
     <div class="fixed bottom-6 left-4 right-4 h-20 glass rounded-2xl flex lg:hidden items-center justify-around px-4 z-[60] border-white/10 shadow-2xl backdrop-blur-lg">
         <button onclick="showView('dashboard')" class="p-3 text-emerald-500 hover:scale-110 active:scale-95 transition-all"><i data-lucide="layout-grid" size="22"></i></button>
         <button onclick="openAddFarmer()" class="w-14 h-14 bg-gradient-to-tr from-emerald-500 to-teal-500 rounded-2xl flex items-center justify-center -translate-y-6 shadow-xl shadow-emerald-500/30 text-white hover:rotate-90 active:scale-90 transition-all duration-300">
@@ -103,27 +95,24 @@
         <button onclick="showView('analytics')" class="p-3 text-slate-400 hover:scale-110 active:scale-95 transition-all"><i data-lucide="bar-chart-3" size="22"></i></button>
     </div>
 
-    <!-- MAIN FRAME -->
     <main class="max-w-6xl mx-auto p-4 sm:p-6 lg:p-12">
-        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-10 mt-2 sm:mt-0">
+        
+        <header class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5 mb-10 mt-2 sm:mt-0">
             <div>
                 <h2 id="header-title" class="text-2xl sm:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-slate-200 to-slate-400 bg-clip-text text-transparent">Dashboard</h2>
                 <p id="header-date" class="text-slate-400 text-xs sm:text-sm mt-1.5 font-medium flex items-center gap-2 text-emerald-400/80"></p>
             </div>
-            <div class="flex items-center gap-2 self-end sm:self-auto">
-                <!-- CLEAR ALL DATA BUTTON -->
-                <button onclick="clearAllData()" class="flex items-center gap-2 border border-red-500/20 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 px-4 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all duration-200">
-                    <i data-lucide="trash-2" size="16"></i> <span class="hidden sm:inline">Clear Data</span>
+            <div class="flex items-center gap-3 self-start sm:self-auto w-full sm:w-auto">
+                <button onclick="clearAllData()" class="flex-1 sm:flex-none flex justify-center items-center gap-2 border border-red-500/20 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 px-4 py-3 rounded-xl font-bold text-sm active:scale-95 transition-all duration-200">
+                    <i data-lucide="trash-2" size="16"></i> <span>Clear Data</span>
                 </button>
-                <button onclick="openAddFarmer()" class="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/15 active:scale-95 transition-all duration-200">
-                    <i data-lucide="user-plus" size="16"></i> <span class="hidden sm:inline">Add Farmer</span>
+                <button onclick="openAddFarmer()" class="flex-1 sm:flex-none flex justify-center items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 px-5 py-3 rounded-xl font-bold text-sm shadow-lg shadow-emerald-500/15 active:scale-95 transition-all duration-200">
+                    <i data-lucide="user-plus" size="16"></i> <span>Add Farmer</span>
                 </button>
             </div>
         </header>
 
-        <!-- DASHBOARD ENTITY VIEW -->
         <div id="view-dashboard" class="space-y-8 animate-slide-up">
-            <!-- STATS CONTAINER -->
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div class="glass p-5 rounded-2xl relative overflow-hidden group">
                     <div class="absolute top-0 right-0 p-3 text-white/5 group-hover:text-emerald-500/10 transition-colors"><i data-lucide="users" size="40"></i></div>
@@ -147,17 +136,14 @@
                 </div>
             </div>
 
-            <!-- FILTERS AND INTERACTION ROW -->
             <div class="relative group">
                 <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors" size="18"></i>
                 <input type="text" id="farmer-search" oninput="renderFarmers()" placeholder="Search farmers by name or village..." class="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-4 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-300 placeholder:text-slate-600 text-sm">
             </div>
 
-            <!-- CORE CARDS HOLDER -->
             <div id="farmer-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
 
-        <!-- METRICS MATRIX VIEW -->
         <div id="view-analytics" class="hidden space-y-6 animate-slide-up">
             <div class="grid lg:grid-cols-3 gap-6">
                 <div class="lg:col-span-2 glass p-6 rounded-[2rem] flex flex-col justify-between">
@@ -193,7 +179,6 @@
         </div>
     </main>
 
-    <!-- MODAL: REGISTRATION FRAME -->
     <div id="modal-add-farmer" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 sm:p-6 transition-all duration-300 backdrop-blur-md bg-slate-950/60">
         <div class="absolute inset-0" onclick="closeAddFarmer()"></div>
         <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem] border border-white/10 transform scale-100 transition-transform">
@@ -207,26 +192,29 @@
         </div>
     </div>
 
-    <!-- MODAL: TUBENEWLL HISTORY & DESCRIPTION PAGE -->
     <div id="modal-detail" class="fixed inset-0 z-[100] hidden flex flex-col justify-end lg:justify-center backdrop-blur-xl bg-slate-950/80">
         <div class="absolute inset-0" onclick="closeDetail()"></div>
         <div class="relative lg:mx-auto lg:max-w-4xl w-full glass lg:rounded-[2rem] rounded-t-[2rem] h-[90vh] lg:h-[85vh] overflow-hidden flex flex-col border-t border-white/10 lg:border">
             
-            <!-- Header section -->
-            <div class="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
+            <div class="p-4 sm:p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.02]">
                 <div class="flex items-center gap-4">
-                    <div id="det-avatar" class="w-12 h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-extrabold text-white text-lg shadow-md"></div>
+                    <div id="det-avatar" class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-extrabold text-white text-lg shadow-md"></div>
                     <div>
-                        <h3 id="det-name" class="text-xl font-bold text-white tracking-tight">Name</h3>
-                        <p class="text-xs text-slate-400 mt-0.5">View runs history and record payments</p>
+                        <h3 id="det-name" class="text-lg sm:text-xl font-bold text-white tracking-tight">Name</h3>
+                        <p class="text-[10px] sm:text-xs text-slate-400 mt-0.5">View runs history and record payments</p>
                     </div>
                 </div>
-                <button onclick="closeDetail()" class="p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all"><i data-lucide="x" size="18"></i></button>
+                <div class="flex items-center gap-2">
+                    <button onclick="deleteCurrentFarmer()" class="p-2 sm:p-2.5 border border-red-500/20 hover:bg-red-500/10 text-red-400 rounded-xl transition-all group" title="Delete Farmer">
+                        <i data-lucide="trash" size="18" class="group-hover:scale-110 transition-transform"></i>
+                    </button>
+                    <button onclick="closeDetail()" class="p-2 sm:p-2.5 bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl transition-all">
+                        <i data-lucide="x" size="18"></i>
+                    </button>
+                </div>
             </div>
             
-            <!-- Dashboard Main Container Split -->
             <div class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6 no-scrollbar pb-12">
-                <!-- Action & Status bar -->
                 <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div class="bg-slate-900/60 p-4 rounded-xl border border-white/5 flex flex-col justify-center">
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Remaining Due</p>
@@ -240,16 +228,13 @@
                     </button>
                 </div>
 
-                <!-- Split History Columns -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <!-- Left: Tubewell sessions logs -->
                     <div>
-                        <div class="flex items-center gap-2 mb-3"><i data-lucide="clock" size="14" class="text-slate-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Tubewell Runs History</h4></div>
+                        <div class="flex items-center gap-2 mb-3"><i data-lucide="clock" size="14" class="text-orange-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Unpaid Runs History</h4></div>
                         <div id="session-list" class="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar"></div>
                     </div>
-                    <!-- Right: Payments received list -->
                     <div>
-                        <div class="flex items-center gap-2 mb-3"><i data-lucide="history" size="14" class="text-blue-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Payments Received</h4></div>
+                        <div class="flex items-center gap-2 mb-3"><i data-lucide="history" size="14" class="text-emerald-400"></i><h4 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Payments Received</h4></div>
                         <div id="payment-list" class="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar"></div>
                     </div>
                 </div>
@@ -257,7 +242,6 @@
         </div>
     </div>
 
-    <!-- MODAL: TIME ENTRY RECORDING MODULE -->
     <div id="modal-add-session" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 backdrop-blur-md bg-slate-950/80">
         <div class="absolute inset-0" onclick="closeAddSession()"></div>
         <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem]">
@@ -296,7 +280,6 @@
         </div>
     </div>
 
-    <!-- MODAL: MANUAL LIQUIDATION VAULT -->
     <div id="modal-collect-payment" class="fixed inset-0 z-[120] hidden items-center justify-center p-4 backdrop-blur-md bg-slate-950/80">
         <div class="absolute inset-0" onclick="closeCollectPayment()"></div>
         <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem]">
@@ -333,7 +316,7 @@
             document.querySelectorAll('main > div').forEach(div => div.classList.add('hidden'));
             document.getElementById(`view-${view}`).classList.remove('hidden');
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active-nav'));
-            if(window.event && window.event.currentTarget.classList.contains('nav-item')) window.event.currentTarget.classList.add('active-nav');
+            if(window.event && window.event.currentTarget.classList.contains('nav-item')) window.event.currentTarget.add('active-nav');
             if(view === 'analytics') refreshAnalytics();
             lucide.createIcons();
         }
@@ -393,24 +376,26 @@
             document.getElementById('det-due').innerText = `Rs ${balances.debt.toLocaleString()}`;
 
             const sList = document.getElementById('session-list');
-            if(currentFarmer.sessions.length === 0) {
-                sList.innerHTML = `<div class="p-6 text-center text-xs text-slate-600 border border-dashed border-white/5 rounded-xl">No saved running logs yet.</div>`;
+            
+            // FILTER REMAINING ACTIVE SESSIONS ONLY (Paid ones drop out)
+            const unpaidSessions = currentFarmer.sessions.filter(s => !currentFarmer.payments.some(p => p.sessionId === s.id));
+            
+            if(unpaidSessions.length === 0) {
+                sList.innerHTML = `<div class="p-6 text-center text-xs text-slate-500 border border-dashed border-white/5 rounded-xl">All clear! No running logs are unpaid.</div>`;
             } else {
-                sList.innerHTML = currentFarmer.sessions.sort((a,b) => new Date(b.date) - new Date(a.date)).map(s => {
-                    return `
-                        <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/[0.04] transition-all group">
+                sList.innerHTML = unpaidSessions.sort((a,b) => new Date(b.date) - new Date(a.date)).map(s => `
+                    <div class="bg-white/[0.02] p-4 rounded-xl border border-white/5 flex justify-between items-center hover:bg-white/[0.04] transition-all group">
+                        <div>
+                            <p class="font-bold text-xs text-white">${s.type} Run • ${s.hours} hours</p>
+                            <p class="text-[10px] text-slate-500 mt-0.5">${s.date} | ${s.start} - ${s.end}</p>
+                        </div>
+                        <div class="text-right flex items-center gap-3">
                             <div>
-                                <p class="font-bold text-xs text-white">${s.type} Run • ${s.hours} hours</p>
-                                <p class="text-[10px] text-slate-500 mt-0.5">${s.date} | ${s.start} - ${s.end}</p>
+                                <p class="font-bold text-xs text-slate-300">Rs ${s.cost.toLocaleString()}</p>
+                                <button onclick="shortcutSessionPayment(${s.id}, ${s.cost}); event.stopPropagation();" class="bg-emerald-500 hover:bg-emerald-600 border border-transparent text-white px-2.5 py-1 rounded-lg text-[10px] font-bold block mt-1 transition-all shadow-md active:scale-95">Mark Paid</button>
                             </div>
-                            <div class="text-right flex items-center gap-3">
-                                <div>
-                                    <p class="font-bold text-xs text-slate-300">Rs ${s.cost.toLocaleString()}</p>
-                                    <button onclick="shortcutSessionPayment(${s.id}, ${s.cost}); event.stopPropagation();" class="bg-emerald-500/10 hover:bg-emerald-500 border border-emerald-500/20 hover:text-white px-2 py-0.5 rounded text-[10px] font-semibold text-emerald-400 block mt-1 transition-all">Mark Paid</button>
-                                </div>
-                            </div>
-                        </div>`;
-                }).join('');
+                        </div>
+                    </div>`).join('');
             }
 
             const pList = document.getElementById('payment-list');
@@ -418,9 +403,9 @@
                 pList.innerHTML = `<div class="p-6 text-center text-xs text-slate-600 border border-dashed border-white/5 rounded-xl">No payments received yet.</div>`;
             } else {
                 pList.innerHTML = currentFarmer.payments.sort((a,b) => new Date(b.date) - new Date(a.date)).map(p => `
-                    <div class="bg-emerald-500/[0.02] p-4 rounded-xl border border-emerald-500/10 flex justify-between items-center group">
+                    <div class="bg-emerald-500/[0.02] p-4 rounded-xl border border-emerald-500/10 flex justify-between items-center group animate-slide-up">
                         <div>
-                            <p class="font-semibold text-xs text-emerald-400 flex items-center gap-1"><i data-lucide="check" size="12"></i> Received Payment</p>
+                            <p class="font-semibold text-xs text-emerald-400 flex items-center gap-1"><i data-lucide="check" size="12"></i> ${p.sessionId ? 'Cleared Run Log' : 'Manual Payment'}</p>
                             <p class="text-[10px] text-slate-500 mt-0.5">${p.date}</p>
                         </div>
                         <p class="font-bold text-sm text-emerald-400">+ Rs ${p.amount.toLocaleString()}</p>
@@ -429,11 +414,20 @@
             lucide.createIcons();
         }
 
+        // STSTRICT ACTION ENGINE: Links node directly, blocks duplicates completely
         function shortcutSessionPayment(sessionId, cost) {
             if(!currentFarmer.payments) currentFarmer.payments = [];
+            
+            // Hard safety check: abort instantly if backend array match exists
+            const alreadyPaid = currentFarmer.payments.some(p => p.sessionId === sessionId);
+            if(alreadyPaid) return; 
+
             const timestampDate = new Date().toISOString().split('T')[0];
-            currentFarmer.payments.push({ id: Date.now(), date: timestampDate, amount: cost });
-            sync(); renderLedgers(); renderFarmers();
+            currentFarmer.payments.push({ id: Date.now(), sessionId: sessionId, date: timestampDate, amount: cost });
+            
+            sync(); 
+            renderLedgers(); // Instantly clears DOM element before any other interaction
+            renderFarmers();
         }
 
         function setRate(r) {
@@ -493,7 +487,19 @@
             document.getElementById('new-name').value = ''; document.getElementById('new-village').value = '';
         }
 
-        /* CLEAR DATA MODULE */
+        function deleteCurrentFarmer() {
+            const verify = confirm(`⚠️ Are you sure you want to permanently remove ${currentFarmer.name} and all their history? This cannot be undone.`);
+            if (verify) {
+                data.farmers = data.farmers.filter(f => f.id !== currentFarmer.id);
+                sync();
+                closeDetail();
+                renderFarmers();
+                if (!document.getElementById('view-analytics').classList.contains('hidden')) {
+                    refreshAnalytics();
+                }
+            }
+        }
+
         function clearAllData() {
             const verify = confirm("⚠️ Danger Zone!\n\nAre you absolutely sure you want to delete ALL farmers, runs logs, and payment history?\n\nThis completely resets the app storage and CANNOT be undone.");
             if (verify) {
