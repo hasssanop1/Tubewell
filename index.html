@@ -8,8 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="icon" type="image/png" href="png of tubewell.png">
-    
+    <link rel="icon" type="image/x-icon" href="png of tubewell.png">
     <style>
         :root { --primary: #10b981; --bg: #060913; --card: rgba(15, 23, 42, 0.65); }
         body {
@@ -83,7 +82,7 @@
             </button>
         </nav>
         <div class="pt-4 border-t border-white/5 text-center">
-            <p class="text-[11px] text-slate-600">v3.4 • Secure Offline Storage</p>
+            <p class="text-[11px] text-slate-600">v3.5 • Secure Offline Storage</p>
         </div>
     </aside>
 
@@ -246,7 +245,7 @@
         <div class="absolute inset-0" onclick="closeAddSession()"></div>
         <div class="relative w-full max-w-md glass p-6 sm:p-8 rounded-[2rem]">
             <h3 class="text-xl font-bold text-white mb-5 tracking-tight">Log Tubewell Session</h3>
-            <div class="grid grid-cols-2 gap-3 mb-5">
+            <div class="grid grid-cols-2 gap-3 mb-4">
                 <button onclick="setRate(1300)" id="btn-solar" class="p-4 rounded-xl border border-emerald-500/40 bg-emerald-500/10 text-left transition-all">
                     <p class="text-[9px] font-bold text-emerald-400 tracking-wider">POWER TYPE: SOLAR</p>
                     <p class="text-base font-bold mt-1">1300<span class="text-xs text-slate-500">/hr</span></p>
@@ -256,6 +255,12 @@
                     <p class="text-base font-bold mt-1">1800<span class="text-xs text-slate-500">/hr</span></p>
                 </button>
             </div>
+            
+            <div class="mb-5">
+                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Or Enter Custom Hourly Rate (Rs/hr)</label>
+                <input type="number" id="s-custom-rate" oninput="setCustomRate(this.value)" placeholder="e.g. 1500" class="w-full bg-white/5 border border-white/10 rounded-xl p-3.5 mt-1 text-sm outline-none focus:border-emerald-500 font-bold text-white placeholder:text-slate-700">
+            </div>
+
             <div class="space-y-4">
                 <div>
                     <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Select Date</label>
@@ -303,6 +308,7 @@
         let data = JSON.parse(localStorage.getItem('agriflow_data_v3')) || { farmers: [] };
         let currentFarmer = null;
         let selectedRate = 1300;
+        let isCustomActive = false;
         let chartInstance = null;
 
         function init() {
@@ -376,8 +382,6 @@
             document.getElementById('det-due').innerText = `Rs ${balances.debt.toLocaleString()}`;
 
             const sList = document.getElementById('session-list');
-            
-            // FILTER REMAINING ACTIVE SESSIONS ONLY (Paid ones drop out)
             const unpaidSessions = currentFarmer.sessions.filter(s => !currentFarmer.payments.some(p => p.sessionId === s.id));
             
             if(unpaidSessions.length === 0) {
@@ -408,17 +412,19 @@
                             <p class="font-semibold text-xs text-emerald-400 flex items-center gap-1"><i data-lucide="check" size="12"></i> ${p.sessionId ? 'Cleared Run Log' : 'Manual Payment'}</p>
                             <p class="text-[10px] text-slate-500 mt-0.5">${p.date}</p>
                         </div>
-                        <p class="font-bold text-sm text-emerald-400">+ Rs ${p.amount.toLocaleString()}</p>
+                        <div class="flex items-center gap-3">
+                            <p class="font-bold text-sm text-emerald-400">Rs ${p.amount.toLocaleString()}</p>
+                            <button onclick="deletePaymentReceipt(${p.id}); event.stopPropagation();" class="p-1.5 border border-red-500/20 hover:border-red-500/50 hover:bg-red-500/10 text-red-400 rounded-lg transition-all" title="Delete Receipt">
+                                <i data-lucide="trash-2" size="14"></i>
+                            </button>
+                        </div>
                     </div>`).join('');
             }
             lucide.createIcons();
         }
 
-        // STSTRICT ACTION ENGINE: Links node directly, blocks duplicates completely
         function shortcutSessionPayment(sessionId, cost) {
             if(!currentFarmer.payments) currentFarmer.payments = [];
-            
-            // Hard safety check: abort instantly if backend array match exists
             const alreadyPaid = currentFarmer.payments.some(p => p.sessionId === sessionId);
             if(alreadyPaid) return; 
 
@@ -426,14 +432,48 @@
             currentFarmer.payments.push({ id: Date.now(), sessionId: sessionId, date: timestampDate, amount: cost });
             
             sync(); 
-            renderLedgers(); // Instantly clears DOM element before any other interaction
+            renderLedgers();
             renderFarmers();
+        }
+
+        function deletePaymentReceipt(id) {
+            const targetPayment = currentFarmer.payments.find(p => p.id === id);
+            
+            // If the receipt matches a cleared run session log, delete the session too
+            if (targetPayment && targetPayment.sessionId) {
+                currentFarmer.sessions = currentFarmer.sessions.filter(s => s.id !== targetPayment.sessionId);
+            }
+            
+            // Remove the payment record itself
+            currentFarmer.payments = currentFarmer.payments.filter(p => p.id !== id);
+            
+            sync();
+            renderLedgers();
+            renderFarmers();
+            if (!document.getElementById('view-analytics').classList.contains('hidden')) refreshAnalytics();
         }
 
         function setRate(r) {
             selectedRate = r;
+            isCustomActive = false;
+            document.getElementById('s-custom-rate').value = ''; 
             document.getElementById('btn-solar').className = r === 1300 ? 'p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-left transition-all' : 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
             document.getElementById('btn-electric').className = r === 1800 ? 'p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-left transition-all' : 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
+            updateSessionCalc();
+        }
+
+        function setCustomRate(val) {
+            let r = parseInt(val);
+            if (isNaN(r) || r <= 0) {
+                selectedRate = 1300; 
+                isCustomActive = false;
+                document.getElementById('btn-solar').className = 'p-4 rounded-xl border border-emerald-500 bg-emerald-500/10 text-left transition-all';
+            } else {
+                selectedRate = r;
+                isCustomActive = true;
+                document.getElementById('btn-solar').className = 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
+                document.getElementById('btn-electric').className = 'p-4 rounded-xl border border-white/5 bg-white/5 text-left transition-all';
+            }
             updateSessionCalc();
         }
 
@@ -454,9 +494,17 @@
             const date = document.getElementById('s-date').value;
             const hrs = parseFloat(document.getElementById('calc-hours').innerText);
             if(!date || isNaN(hrs)) return;
+            
+            let runType = 'Solar';
+            if (isCustomActive) {
+                runType = `Custom (${selectedRate})`;
+            } else if (selectedRate === 1800) {
+                runType = 'Electric';
+            }
+
             currentFarmer.sessions.push({
                 id: Date.now(), date, hours: hrs, cost: Math.ceil(hrs * selectedRate),
-                type: selectedRate === 1300 ? 'Solar' : 'Electric', 
+                type: runType, 
                 start: document.getElementById('s-start').value, end: document.getElementById('s-end').value
             });
             sync(); closeAddSession(); renderLedgers(); renderFarmers();
@@ -491,12 +539,8 @@
             const verify = confirm(`⚠️ Are you sure you want to permanently remove ${currentFarmer.name} and all their history? This cannot be undone.`);
             if (verify) {
                 data.farmers = data.farmers.filter(f => f.id !== currentFarmer.id);
-                sync();
-                closeDetail();
-                renderFarmers();
-                if (!document.getElementById('view-analytics').classList.contains('hidden')) {
-                    refreshAnalytics();
-                }
+                sync(); closeDetail(); renderFarmers();
+                if (!document.getElementById('view-analytics').classList.contains('hidden')) refreshAnalytics();
             }
         }
 
@@ -505,11 +549,8 @@
             if (verify) {
                 data = { farmers: [] };
                 localStorage.removeItem('agriflow_data_v3');
-                sync();
-                renderFarmers();
-                if (!document.getElementById('view-analytics').classList.contains('hidden')) {
-                    refreshAnalytics();
-                }
+                sync(); renderFarmers();
+                if (!document.getElementById('view-analytics').classList.contains('hidden')) refreshAnalytics();
             }
         }
 
@@ -590,7 +631,7 @@
         function sync() { localStorage.setItem('agriflow_data_v3', JSON.stringify(data)); updateGlobalStats(); }
         function openAddFarmer() { document.getElementById('modal-add-farmer').classList.remove('hidden'); }
         function closeAddFarmer() { document.getElementById('modal-add-farmer').classList.add('hidden'); }
-        function openAddSession() { document.getElementById('s-date').valueAsDate = new Date(); document.getElementById('modal-add-session').classList.remove('hidden'); }
+        function openAddSession() { setRate(1300); document.getElementById('s-date').valueAsDate = new Date(); document.getElementById('modal-add-session').classList.remove('hidden'); }
         function closeAddSession() { document.getElementById('modal-add-session').classList.add('hidden'); }
         function closeDetail() { document.getElementById('modal-detail').classList.add('hidden'); }
 
